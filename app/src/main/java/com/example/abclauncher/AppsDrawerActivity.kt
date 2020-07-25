@@ -1,23 +1,39 @@
 package com.example.abclauncher
 
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.GridLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import android.graphics.drawable.Drawable as Drawable
 
 
 class AppsDrawerActivity : AppCompatActivity() {
     private var recyclerView: RecyclerView? = null
+    val APP_PREFERENCES = "my_settings"
+    val APP_PREFERENCES_ICON_STATE = "IconState"
+    val ICON_STATE_GRID = "GRID"
+    val ICON_STATE_LIST = "LIST"
+
+    var editor: SharedPreferences.Editor? = null
+    var mSettings: SharedPreferences? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_apps_drawer)
+
+        mSettings =
+            getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
+
+        editor = mSettings?.edit()
+        editor?.putString(APP_PREFERENCES_ICON_STATE, ICON_STATE_LIST)
+
+
         initRecyclerView()
         //checkLayout()
     }
@@ -39,18 +55,29 @@ class AppsDrawerActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.grid_or_list_action -> {
-                val drawableGrid:Drawable = resources.getDrawable(R.drawable.ic_grid_on_24, null)
-                val drawableList:Drawable = resources.getDrawable(R.drawable.ic_list_on_24, null)
+                if (mSettings!!.contains(APP_PREFERENCES_ICON_STATE)) {
+                    if (ICON_STATE_LIST == mSettings!!.getString(
+                            APP_PREFERENCES_ICON_STATE,
+                            "NO_VALUE"
+                        )
+                    ) {
+                        editor?.remove(APP_PREFERENCES_ICON_STATE)
+                        editor?.putString(APP_PREFERENCES_ICON_STATE, ICON_STATE_GRID)
+                        item.setIcon(R.drawable.ic_grid_on_24)
+                        recyclerView?.layoutManager = GridLayoutManager(this, 3)
+                        recyclerView?.adapter = AppsDrawerAdapter(this)
 
-                if (item.icon.equals(drawableList)) {
-                    item.setIcon(R.drawable.ic_grid_on_24)
-                    recyclerView?.layoutManager = GridLayoutManager(this, 3)
-                    recyclerView?.adapter = AppsDrawerAdapter(this)
-
-                } else if (item.icon == drawableGrid) {
-                    item.setIcon(R.drawable.ic_list_on_24)
-                    recyclerView?.layoutManager = LinearLayoutManager(this)
-                    recyclerView?.adapter = AppsDrawerAdapter(this)
+                    } else if (ICON_STATE_GRID == mSettings!!.getString(
+                            APP_PREFERENCES_ICON_STATE,
+                            "NO_VALUE"
+                        )
+                    ) {
+                        editor?.remove(APP_PREFERENCES_ICON_STATE)
+                        editor?.putString(APP_PREFERENCES_ICON_STATE, ICON_STATE_LIST)
+                        item.setIcon(R.drawable.ic_list_on_24)
+                        recyclerView?.layoutManager = LinearLayoutManager(this)
+                        recyclerView?.adapter = AppsDrawerAdapter(this)
+                    }
                 }
                 return true
             }
