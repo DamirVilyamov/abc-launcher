@@ -1,34 +1,16 @@
 package com.example.abclauncher
 
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
 
 
-class AppsDrawerAdapter(context: Context) :
-    RecyclerView.Adapter<AppsDrawerAdapter.Holder>() {
-    var appsList = ArrayList<AppInfo>()
-    init {
-        val pm: PackageManager = context.packageManager
-        val i = Intent(Intent.ACTION_MAIN, null)
-        i.addCategory(Intent.CATEGORY_LAUNCHER)
-
-        val allApps = pm.queryIntentActivities(i, 0)
-        for (ri in allApps) {
-            val app = AppInfo()
-            app.label = ri.loadLabel(pm)
-            app.packageName = ri.activityInfo.packageName
-            app.icon = ri.activityInfo.loadIcon(pm)
-            appsList.add(app)
-        }
-    }
+class AppsDrawerAdapter(val appsList:ArrayList<AppInfo>) :
+    RecyclerView.Adapter<AppsDrawerAdapter.Holder>(), Filterable {
+    val appsListFull = ArrayList(appsList)
 
     class Holder(itemView: View, var icon: ImageView, var name: TextView) :
         RecyclerView.ViewHolder(itemView) {
@@ -64,4 +46,34 @@ class AppsDrawerAdapter(context: Context) :
                 .show()
         }
     }
+
+    override fun getFilter(): Filter {
+        return mFilter
+    }
+    val mFilter:Filter = object:Filter(){
+        override fun performFiltering(constraint: CharSequence?): FilterResults {
+            val filteredList = ArrayList<AppInfo>()
+            if (constraint == null || constraint.length == 0){
+                filteredList.addAll(appsListFull)
+            } else {
+                val searchPattern = constraint.toString().toLowerCase().trim()
+                for (item in appsListFull){
+                    if (item.label.toString().toLowerCase().contains(searchPattern)){
+                        filteredList.add(item)
+                    }
+                }
+            }
+            val filterResults = FilterResults();
+            filterResults.values = filteredList
+            return filterResults
+        }
+
+        override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+            appsList.clear()
+            appsList.addAll(results?.values as List<AppInfo>)
+            notifyDataSetChanged()
+        }
+
+    }
+
 }
