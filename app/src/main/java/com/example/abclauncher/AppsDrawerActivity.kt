@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.android.synthetic.main.activity_apps_drawer.*
 
 
 class AppsDrawerActivity : AppCompatActivity() {
@@ -26,7 +27,7 @@ class AppsDrawerActivity : AppCompatActivity() {
     val APP_PREFERENCES_ICON_STATE = "IconState"
     val ICON_STATE_GRID = "GRID"
     val ICON_STATE_LIST = "LIST"
-
+    val context = this
 
     var editor: SharedPreferences.Editor? = null
     var mSettings: SharedPreferences? = null
@@ -51,10 +52,10 @@ class AppsDrawerActivity : AppCompatActivity() {
     }
 
     private fun initRecyclerView() {
-        recyclerView = findViewById(R.id.apps_recycler_view)
-        val adapter = AppsDrawerAdapter(getAllAppsList())
+        recyclerView = apps_recycler_view
+        val adapter = AppsDrawerAdapter(getAllAppsList(), this)
         val linearLayoutManager = LinearLayoutManager(this)
-        recyclerView?.layoutManager = linearLayoutManager
+        apps_recycler_view.layoutManager = linearLayoutManager
         recyclerView?.adapter = adapter
     }
 
@@ -75,7 +76,7 @@ class AppsDrawerActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
-                val adapter = AppsDrawerAdapter(getAllAppsList())
+                val adapter = AppsDrawerAdapter(getAllAppsList(), context)
                 adapter.filter.filter(newText)
                 recyclerView?.adapter = adapter
                 return false
@@ -144,7 +145,7 @@ class AppsDrawerActivity : AppCompatActivity() {
                         ) {
                             invalidateOptionsMenu()
                             recyclerView?.layoutManager = LinearLayoutManager(this)
-                            recyclerView?.adapter = AppsDrawerAdapter(getAllAppsList())
+
 
                         } else if (ICON_STATE_GRID == mSettings!!.getString(
                                 APP_PREFERENCES_ICON_STATE,
@@ -153,7 +154,7 @@ class AppsDrawerActivity : AppCompatActivity() {
                         ) {
                             invalidateOptionsMenu()
                             recyclerView?.layoutManager = GridLayoutManager(this, 3)
-                            recyclerView?.adapter = AppsDrawerAdapter(getAllAppsList())
+
                         }
                     }
                 }

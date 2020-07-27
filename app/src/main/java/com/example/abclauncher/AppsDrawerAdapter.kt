@@ -1,21 +1,23 @@
 package com.example.abclauncher
 
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 
 
-class AppsDrawerAdapter(val appsList:ArrayList<AppInfo>) :
+class AppsDrawerAdapter(val appsList: ArrayList<AppInfo>, val context: Context) :
     RecyclerView.Adapter<AppsDrawerAdapter.Holder>(), Filterable {
     val appsListFull = ArrayList(appsList)
 
     class Holder(itemView: View, var icon: ImageView, var name: TextView) :
-        RecyclerView.ViewHolder(itemView) {
-
-    }
+        RecyclerView.ViewHolder(itemView)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
         val itemView: View =
@@ -38,27 +40,73 @@ class AppsDrawerAdapter(val appsList:ArrayList<AppInfo>) :
 
         holder.itemView.setOnClickListener {
             val pos: Int = position
-            val context: Context = it.context
-            val launchIntent = context.packageManager
-                .getLaunchIntentForPackage(appsList.get(pos).packageName.toString())
+            /*val launchIntent = context.packageManager
+                .getLaunchIntentForPackage(appsList[pos].packageName.toString())
             context.startActivity(launchIntent)
             Toast.makeText(it.context, appsList[pos].label.toString(), Toast.LENGTH_LONG)
-                .show()
+                .show()*/
+
+            val providersInfo = context.packageManager.getPackageInfo(
+                appsList[pos].packageName.toString(),
+                PackageManager.GET_PROVIDERS
+            )
+            val servicesInfo = context.packageManager.getPackageInfo(
+                appsList[pos].packageName.toString(),
+                PackageManager.GET_SERVICES
+            )
+            val receiversInfo = context.packageManager.getPackageInfo(
+                appsList[pos].packageName.toString(),
+                PackageManager.GET_RECEIVERS
+            )
+
+            val providersList = ArrayList<String>()
+            val servicesList = ArrayList<String>()
+            val receiversList = ArrayList<String>()
+
+            if (!providersInfo.providers.isNullOrEmpty()) {
+                for (provider in providersInfo.providers) {
+                    providersList.add(provider.name)
+                }
+            }
+            if (!servicesInfo.services.isNullOrEmpty()) {
+                for (service in servicesInfo.services) {
+                    servicesList.add(service.name)
+                }
+            }
+            if (!receiversInfo.receivers.isNullOrEmpty()) {
+                for (receiver in receiversInfo.receivers) {
+                    receiversList.add(receiver.name)
+                }
+            }
+
+            if (!providersList.isNullOrEmpty() || !servicesList.isNullOrEmpty() || !receiversList.isNullOrEmpty()) {
+                val intent = Intent(context, AppInfoActivity::class.java)
+                intent.putStringArrayListExtra("providersList", providersList)
+                intent.putStringArrayListExtra("servicesList", servicesList)
+                intent.putStringArrayListExtra("receiversList", receiversList)
+                Log.d("!@#", "onBindViewHolder: ${providersList.isNullOrEmpty()} ${servicesList.isNullOrEmpty()} ${receiversList.isNullOrEmpty()}")
+                startActivity(context, intent, null)
+            } else {
+                Toast.makeText(context, "No info", Toast.LENGTH_LONG)
+                    .show()
+            }
+
         }
     }
 
     override fun getFilter(): Filter {
         return mFilter
     }
-    val mFilter:Filter = object:Filter(){
+
+    val mFilter: Filter = object : Filter() {
         override fun performFiltering(constraint: CharSequence?): FilterResults {
             val filteredList = ArrayList<AppInfo>()
-            if (constraint == null || constraint.length == 0){
+            if (constraint == null || constraint.isEmpty()) {
                 filteredList.addAll(appsListFull)
             } else {
                 val searchPattern = constraint.toString().toLowerCase().trim()
-                for (item in appsListFull){
-                    if (item.label.toString().toLowerCase().contains(searchPattern)){
+                for (item in appsListFull) {
+                    if (item.label.toString().toLowerCase().contains(searchPattern)) {
                         filteredList.add(item)
                     }
                 }
