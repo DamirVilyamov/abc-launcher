@@ -37,14 +37,17 @@ class AppsDrawerAdapter(val appsList: ArrayList<AppInfo>, val context: Context) 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         holder.icon.setImageDrawable(appsList[position].icon)
         holder.name.text = appsList[position].label.toString()
-
+        val pos: Int = position
         holder.itemView.setOnClickListener {
-            val pos: Int = position
-            /*val launchIntent = context.packageManager
+            val launchIntent = context.packageManager
                 .getLaunchIntentForPackage(appsList[pos].packageName.toString())
             context.startActivity(launchIntent)
             Toast.makeText(it.context, appsList[pos].label.toString(), Toast.LENGTH_LONG)
-                .show()*/
+                .show()
+
+        }
+
+        holder.itemView.setOnLongClickListener{
 
             val providersInfo = context.packageManager.getPackageInfo(
                 appsList[pos].packageName.toString(),
@@ -84,11 +87,16 @@ class AppsDrawerAdapter(val appsList: ArrayList<AppInfo>, val context: Context) 
                 intent.putStringArrayListExtra("providersList", providersList)
                 intent.putStringArrayListExtra("servicesList", servicesList)
                 intent.putStringArrayListExtra("receiversList", receiversList)
-                Log.d("!@#", "onBindViewHolder: ${providersList.isNullOrEmpty()} ${servicesList.isNullOrEmpty()} ${receiversList.isNullOrEmpty()}")
-                startActivity(context, intent, null)
+                Log.d(
+                    "!@#",
+                    "onBindViewHolder: ${providersList.isNullOrEmpty()} ${servicesList.isNullOrEmpty()} ${receiversList.isNullOrEmpty()}"
+                )
+                context.startActivity(intent)
+                return@setOnLongClickListener true
             } else {
                 Toast.makeText(context, "No info", Toast.LENGTH_LONG)
                     .show()
+                return@setOnLongClickListener true
             }
 
         }
