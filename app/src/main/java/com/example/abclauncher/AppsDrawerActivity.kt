@@ -53,7 +53,7 @@ class AppsDrawerActivity : AppCompatActivity() {
 
     private fun initRecyclerView() {
         recyclerView = apps_recycler_view
-        val adapter = AppsDrawerAdapter(getAllAppsList(), this)
+        val adapter = AppsDrawerAdapter(this)
         val linearLayoutManager = LinearLayoutManager(this)
         apps_recycler_view.layoutManager = linearLayoutManager
         recyclerView?.adapter = adapter
@@ -76,7 +76,7 @@ class AppsDrawerActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
-                val adapter = AppsDrawerAdapter(getAllAppsList(), context)
+                val adapter = AppsDrawerAdapter(context)
                 adapter.filter.filter(newText)
                 recyclerView?.adapter = adapter
                 return false
@@ -168,34 +168,19 @@ class AppsDrawerActivity : AppCompatActivity() {
                 "NO_VALUE"
             )
         ) {
-            gridOrListItem.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_list_on_24))
+            gridOrListItem.icon = ContextCompat.getDrawable(this, R.drawable.ic_list_on_24)
         } else if (ICON_STATE_GRID == mSettings!!.getString(
                 APP_PREFERENCES_ICON_STATE,
                 "NO_VALUE"
             )
         ) {
-            gridOrListItem.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_grid_on_24))
+            gridOrListItem.icon = ContextCompat.getDrawable(this, R.drawable.ic_grid_on_24)
         }
 
         return super.onPrepareOptionsMenu(menu)
     }
 
-    fun getAllAppsList(): ArrayList<AppInfo> {
-        var appsList = ArrayList<AppInfo>()
-        val pm: PackageManager = this.packageManager
-        val i = Intent(Intent.ACTION_MAIN, null)
-        i.addCategory(Intent.CATEGORY_LAUNCHER)
 
-        val allApps = pm.queryIntentActivities(i, 0)
-        for (ri in allApps) {
-            val app = AppInfo()
-            app.label = ri.loadLabel(pm)
-            app.packageName = ri.activityInfo.packageName
-            app.icon = ri.activityInfo.loadIcon(pm)
-            appsList.add(app)
-        }
-        return appsList
-    }
 }
 
 

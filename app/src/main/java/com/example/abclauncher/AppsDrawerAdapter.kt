@@ -10,23 +10,89 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.android.synthetic.main.app_list_item.view.*
 
 
-class AppsDrawerAdapter(val appsList: ArrayList<AppInfo>, val context: Context) :
+class AppsDrawerAdapter(val context: Context) :
     RecyclerView.Adapter<AppsDrawerAdapter.Holder>(), Filterable {
+    val appsList = Apps.getAllAppsList(context)
     val appsListFull = ArrayList(appsList)
 
-    class Holder(itemView: View, var icon: ImageView, var name: TextView) :
-        RecyclerView.ViewHolder(itemView)
+    class Holder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
+
+        fun bind(appInfo: AppInfo) {
+            itemView.app_icon_imageView.setImageDrawable(appInfo.icon)
+            itemView.app_name_textView.text = appInfo.label.toString()
+            val context = itemView.context
+            itemView.setOnClickListener {
+                val launchIntent = context.packageManager
+                    .getLaunchIntentForPackage(appInfo.packageName.toString())
+                context.startActivity(launchIntent)
+                Toast.makeText(context, appInfo.label.toString(), Toast.LENGTH_LONG)
+                    .show()
+            }
+            itemView.setOnLongClickListener {
+
+                val providersInfo = context.packageManager.getPackageInfo(
+                    appInfo.packageName.toString(),
+                    PackageManager.GET_PROVIDERS
+                )
+                val servicesInfo = context.packageManager.getPackageInfo(
+                    appInfo.packageName.toString(),
+                    PackageManager.GET_SERVICES
+                )
+                val receiversInfo = context.packageManager.getPackageInfo(
+                    appInfo.packageName.toString(),
+                    PackageManager.GET_RECEIVERS
+                )
+
+                val providersList = ArrayList<String>()
+                val servicesList = ArrayList<String>()
+                val receiversList = ArrayList<String>()
+
+                if (!providersInfo.providers.isNullOrEmpty()) {
+                    for (provider in providersInfo.providers) {
+                        providersList.add(provider.name)
+                    }
+                }
+                if (!servicesInfo.services.isNullOrEmpty()) {
+                    for (service in servicesInfo.services) {
+                        servicesList.add(service.name)
+                    }
+                }
+                if (!receiversInfo.receivers.isNullOrEmpty()) {
+                    for (receiver in receiversInfo.receivers) {
+                        receiversList.add(receiver.name)
+                    }
+                }
+
+                if (!providersList.isNullOrEmpty() || !servicesList.isNullOrEmpty() || !receiversList.isNullOrEmpty()) {
+                    val intent = Intent(context, AppInfoActivity::class.java)
+                    intent.putStringArrayListExtra("providersList", providersList)
+                    intent.putStringArrayListExtra("servicesList", servicesList)
+                    intent.putStringArrayListExtra("receiversList", receiversList)
+                    Log.d(
+                        "!@#",
+                        "onBindViewHolder: ${providersList.isNullOrEmpty()} ${servicesList.isNullOrEmpty()} ${receiversList.isNullOrEmpty()}"
+                    )
+                    context.startActivity(intent)
+                } else {
+                    Toast.makeText(context, "No info", Toast.LENGTH_LONG)
+                        .show()
+                }
+                return@setOnLongClickListener true
+            }
+
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
         val itemView: View =
             LayoutInflater.from(parent.context).inflate(R.layout.app_list_item, parent, false)
 
         return Holder(
-            itemView,
-            itemView.findViewById(R.id.app_icon_imageView),
-            itemView.findViewById(R.id.app_name_textView)
+            itemView
         )
     }
 
@@ -35,101 +101,12 @@ class AppsDrawerAdapter(val appsList: ArrayList<AppInfo>, val context: Context) 
     }
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
-        holder.icon.setImageDrawable(appsList[position].icon)
-        holder.name.text = appsList[position].label.toString()
-        val pos: Int = position
-        holder.itemView.setOnClickListener {
-            val launchIntent = context.packageManager
-                .getLaunchIntentForPackage(appsList[pos].packageName.toString())
-            context.startActivity(launchIntent)
-            Toast.makeText(it.context, appsList[pos].label.toString(), Toast.LENGTH_LONG)
-                .show()
-
-        }
-
-        holder.itemView.setOnLongClickListener{
-
-            val providersInfo = context.packageManager.getPackageInfo(
-                appsList[pos].packageName.toString(),
-                PackageManager.GET_PROVIDERS
-            )
-            val servicesInfo = context.packageManager.getPackageInfo(
-                appsList[pos].packageName.toString(),
-                PackageManager.GET_SERVICES
-            )
-            val receiversInfo = context.packageManager.getPackageInfo(
-                appsList[pos].packageName.toString(),
-                PackageManager.GET_RECEIVERS
-            )
-
-            val providersList = ArrayList<String>()
-            val servicesList = ArrayList<String>()
-            val receiversList = ArrayList<String>()
-
-            if (!providersInfo.providers.isNullOrEmpty()) {
-                for (provider in providersInfo.providers) {
-                    providersList.add(provider.name)
-                }
-            }
-            if (!servicesInfo.services.isNullOrEmpty()) {
-                for (service in servicesInfo.services) {
-                    servicesList.add(service.name)
-                }
-            }
-            if (!receiversInfo.receivers.isNullOrEmpty()) {
-                for (receiver in receiversInfo.receivers) {
-                    receiversList.add(receiver.name)
-                }
-            }
-
-            if (!providersList.isNullOrEmpty() || !servicesList.isNullOrEmpty() || !receiversList.isNullOrEmpty()) {
-                val intent = Intent(context, AppInfoActivity::class.java)
-                intent.putStringArrayListExtra("providersList", providersList)
-                intent.putStringArrayListExtra("servicesList", servicesList)
-                intent.putStringArrayListExtra("receiversList", receiversList)
-                Log.d(
-                    "!@#",
-                    "onBindViewHolder: ${providersList.isNullOrEmpty()} ${servicesList.isNullOrEmpty()} ${receiversList.isNullOrEmpty()}"
-                )
-                context.startActivity(intent)
-                return@setOnLongClickListener true
-            } else {
-                Toast.makeText(context, "No info", Toast.LENGTH_LONG)
-                    .show()
-                return@setOnLongClickListener true
-            }
-
-        }
+        holder.bind(appsList[position])
     }
 
     override fun getFilter(): Filter {
-        return mFilter
+        return Apps.getFilter(appsList, appsListFull, this)
     }
 
-    val mFilter: Filter = object : Filter() {
-        override fun performFiltering(constraint: CharSequence?): FilterResults {
-            val filteredList = ArrayList<AppInfo>()
-            if (constraint == null || constraint.isEmpty()) {
-                filteredList.addAll(appsListFull)
-            } else {
-                val searchPattern = constraint.toString().toLowerCase().trim()
-                for (item in appsListFull) {
-                    if (item.label.toString().toLowerCase().contains(searchPattern)) {
-                        filteredList.add(item)
-                    }
-                }
-            }
-            val filterResults = FilterResults();
-            filterResults.values = filteredList
-            return filterResults
-        }
-
-        override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-            appsList.clear()
-            appsList.addAll(results?.values as List<AppInfo>)
-            notifyDataSetChanged()
-        }
-
-    }
 
 }
