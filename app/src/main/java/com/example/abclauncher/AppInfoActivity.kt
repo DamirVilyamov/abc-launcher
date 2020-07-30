@@ -1,42 +1,51 @@
 package com.example.abclauncher
 
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_app_info.*
 
 class AppInfoActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_app_info)
-        val providersList = intent.getStringArrayListExtra("providersList")
-        val servicesList = intent.getStringArrayListExtra("servicesList")
-        val receiversList = intent.getStringArrayListExtra("receiversList")
+        prepareInfo()
 
-        Log.d("!@#", "AppInfoActivity: ${providersList.isNullOrEmpty()} ${servicesList.isNullOrEmpty()} ${receiversList.isNullOrEmpty()}")
-        if (!providersList.isNullOrEmpty()) {
-            for (item in providersList) {
-                textViewProviders.append(item + "\n")
+
+    }
+
+    fun prepareInfo(){
+        val packageName = intent.getStringExtra("packageName")
+        val providersInfo = this.packageManager.getPackageInfo(
+            packageName,
+            PackageManager.GET_PROVIDERS
+        )
+        val servicesInfo = this.packageManager.getPackageInfo(
+            packageName,
+            PackageManager.GET_SERVICES
+        )
+        val receiversInfo = this.packageManager.getPackageInfo(
+            packageName,
+            PackageManager.GET_RECEIVERS
+        )
+
+
+        if (!providersInfo.providers.isNullOrEmpty()) {
+            for (provider in providersInfo.providers) {
+                textViewProviders.append(provider.name)
             }
-        } else{
-            textViewProviders.text = "No info about Providers"
         }
-
-
-        if (!servicesList.isNullOrEmpty()) {
-            for (item in servicesList) {
-                textViewServices.append(item + "\n")
+        if (!servicesInfo.services.isNullOrEmpty()) {
+            for (service in servicesInfo.services) {
+                textViewServices.append(service.name)
             }
-        } else{
-            textViewServices.text = "No info about Services"
         }
-
-        if (!receiversList.isNullOrEmpty()) {
-            for (item in receiversList) {
-                textViewReceivers.append(item + "\n")
+        if (!receiversInfo.receivers.isNullOrEmpty()) {
+            for (receiver in receiversInfo.receivers) {
+                textViewReceivers.append(receiver.name)
             }
-        } else{
-            textViewReceivers.text = "No info about Receivers"
         }
     }
 }

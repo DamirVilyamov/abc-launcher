@@ -6,17 +6,17 @@
     tools:context=".AppsDrawerActivity">
 
     <item
-        android:id="@+id/search_action_item"
-        android:icon="@drawable/ic_baseline_search_24"
-        app:showAsAction="ifRoom"
-        android:title="Search"
-        app:actionViewClass="androidx.appcompat.widget.SearchView" />
-
-    <item
         android:id="@+id/grid_or_list_action"
         android:icon="@drawable/ic_grid_on_24"
         android:title="Layout"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/search_action_item"
+        android:icon="@drawable/ic_baseline_search_24"
+        android:title="Search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always" />
 
 
 </menu>

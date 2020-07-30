@@ -13,10 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.app_list_item.view.*
 
 
-class AppsDrawerAdapter(val context: Context) :
-    RecyclerView.Adapter<AppsDrawerAdapter.Holder>(), Filterable {
-    val appsList = Apps.getAllAppsList(context)
-    val appsListFull = ArrayList(appsList)
+class AppsDrawerAdapter(val appsList: ArrayList<AppInfo>) :
+    RecyclerView.Adapter<AppsDrawerAdapter.Holder>() {
+
+
 
     class Holder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
@@ -34,40 +34,9 @@ class AppsDrawerAdapter(val context: Context) :
             }
             itemView.setOnLongClickListener {
 
-                val providersInfo = context.packageManager.getPackageInfo(
-                    appInfo.packageName.toString(),
-                    PackageManager.GET_PROVIDERS
-                )
-                val servicesInfo = context.packageManager.getPackageInfo(
-                    appInfo.packageName.toString(),
-                    PackageManager.GET_SERVICES
-                )
-                val receiversInfo = context.packageManager.getPackageInfo(
-                    appInfo.packageName.toString(),
-                    PackageManager.GET_RECEIVERS
-                )
 
-                val providersList = ArrayList<String>()
-                val servicesList = ArrayList<String>()
-                val receiversList = ArrayList<String>()
 
-                if (!providersInfo.providers.isNullOrEmpty()) {
-                    for (provider in providersInfo.providers) {
-                        providersList.add(provider.name)
-                    }
-                }
-                if (!servicesInfo.services.isNullOrEmpty()) {
-                    for (service in servicesInfo.services) {
-                        servicesList.add(service.name)
-                    }
-                }
-                if (!receiversInfo.receivers.isNullOrEmpty()) {
-                    for (receiver in receiversInfo.receivers) {
-                        receiversList.add(receiver.name)
-                    }
-                }
-
-                if (!providersList.isNullOrEmpty() || !servicesList.isNullOrEmpty() || !receiversList.isNullOrEmpty()) {
+                /*if (!providersList.isNullOrEmpty() || !servicesList.isNullOrEmpty() || !receiversList.isNullOrEmpty()) {
                     val intent = Intent(context, AppInfoActivity::class.java)
                     intent.putStringArrayListExtra("providersList", providersList)
                     intent.putStringArrayListExtra("servicesList", servicesList)
@@ -80,8 +49,14 @@ class AppsDrawerAdapter(val context: Context) :
                 } else {
                     Toast.makeText(context, "No info", Toast.LENGTH_LONG)
                         .show()
-                }
+                }*/
+
+                val intent = Intent(context, AppInfoActivity::class.java)
+                intent.putExtra("packageName", appInfo.packageName.toString())
+                context.startActivity(intent)
                 return@setOnLongClickListener true
+
+
             }
 
         }
@@ -104,9 +79,6 @@ class AppsDrawerAdapter(val context: Context) :
         holder.bind(appsList[position])
     }
 
-    override fun getFilter(): Filter {
-        return Apps.getFilter(appsList, appsListFull, this)
-    }
 
 
 }

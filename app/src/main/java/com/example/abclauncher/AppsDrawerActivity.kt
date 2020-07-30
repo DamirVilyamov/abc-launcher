@@ -36,14 +36,14 @@ class AppsDrawerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_apps_drawer)
-
+        val appsList = Apps(context).appsList
         mSettings =
             getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
 
 
 
         editor = mSettings?.edit()
-        editor?.putString(APP_PREFERENCES_ICON_STATE, ICON_STATE_LIST)
+        editor?.putString(APP_PREFERENCES_ICON_STATE, ICON_STATE_GRID)
         mSettings?.registerOnSharedPreferenceChangeListener(mListener)
         editor?.apply()
 
@@ -53,7 +53,7 @@ class AppsDrawerActivity : AppCompatActivity() {
 
     private fun initRecyclerView() {
         recyclerView = apps_recycler_view
-        val adapter = AppsDrawerAdapter(this)
+        val adapter = AppsDrawerAdapter(appsList)
         val linearLayoutManager = LinearLayoutManager(this)
         apps_recycler_view.layoutManager = linearLayoutManager
         recyclerView?.adapter = adapter
@@ -77,7 +77,9 @@ class AppsDrawerActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(newText: String): Boolean {
                 val adapter = AppsDrawerAdapter(context)
-                adapter.filter.filter(newText)
+
+                adapter.apps.filter(newText)
+
                 recyclerView?.adapter = adapter
                 return false
             }
@@ -123,6 +125,9 @@ class AppsDrawerActivity : AppCompatActivity() {
                 return true
             }
 
+           /* R.id.search_action_item -> {
+
+            }*/
             else -> {
                 Log.d("!@#", "onOptionsItemSelected: не нашел айди айтема")
                 return true
@@ -144,7 +149,7 @@ class AppsDrawerActivity : AppCompatActivity() {
                             )
                         ) {
                             invalidateOptionsMenu()
-                            recyclerView?.layoutManager = LinearLayoutManager(this)
+                            recyclerView?.layoutManager = GridLayoutManager(this, 3)
 
 
                         } else if (ICON_STATE_GRID == mSettings!!.getString(
@@ -153,7 +158,8 @@ class AppsDrawerActivity : AppCompatActivity() {
                             )
                         ) {
                             invalidateOptionsMenu()
-                            recyclerView?.layoutManager = GridLayoutManager(this, 3)
+                            recyclerView?.layoutManager = LinearLayoutManager(this)
+
 
                         }
                     }
