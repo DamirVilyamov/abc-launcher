@@ -31,12 +31,14 @@ class AppsDrawerActivity : AppCompatActivity() {
 
     var editor: SharedPreferences.Editor? = null
     var mSettings: SharedPreferences? = null
-
+    var appsList = ArrayList<AppInfo>()
+    lateinit var apps:Apps
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_apps_drawer)
-        val appsList = Apps(context).appsList
+        apps = Apps(context)
+        appsList = apps.getList("")
         mSettings =
             getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
 
@@ -76,10 +78,7 @@ class AppsDrawerActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
-                val adapter = AppsDrawerAdapter(context)
-
-                adapter.apps.filter(newText)
-
+                val adapter = AppsDrawerAdapter(apps.getList(newText))
                 recyclerView?.adapter = adapter
                 return false
             }

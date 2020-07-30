@@ -8,8 +8,8 @@ import android.widget.Filterable
 
 class Apps(val context: Context) : Filterable {
 
-    val appsList = getAllAppsList()
-    val appsListFull = ArrayList(appsList)
+    private val appsList = getAllAppsList()
+    private val appsListFull = ArrayList(appsList)
 
 
     private fun getAllAppsList(): ArrayList<AppInfo> {
@@ -29,6 +29,10 @@ class Apps(val context: Context) : Filterable {
         return appsList
     }
 
+    fun getList(newText: String): ArrayList<AppInfo> {
+        filter.filter(newText)
+        return appsList
+    }
 
     override fun getFilter(): Filter {
         return object : Filter() {
@@ -57,10 +61,5 @@ class Apps(val context: Context) : Filterable {
         }
     }
 
-    fun filter(newText: String) {
-        filter.filter(newText)
-    }
-companion object {
 
-}
 }
